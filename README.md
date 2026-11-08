@@ -4,9 +4,12 @@ Android-App für den schnellen Zimmer-Check unterwegs: Hotelzimmer, Ferienwohnun
 auf versteckte Funk-Kameras, Bluetooth-Tracker, Wanzen und Kamera-Dienste im WLAN prüfen – plus
 Infrarot- und Linsen-Modus für die Sichtprüfung. Bedienung über eine schnelle Konsole (dunkel/orange) –
 oder über das **Radarbild**: dein Handy in der Mitte, die gefundenen Geräte drumherum nach Funkart,
-Signalstärke und Einstufung, jedes mit einer Erklärung in Klartext.
+Signalstärke und Einstufung, jedes mit einer Erklärung in Klartext. Dazu eine Liste aller WLAN-Netze
+der Umgebung mit Signalstärke, Kanal und Verschlüsselung.
 
-**Download:** [cappy0815.github.io](https://cappy0815.github.io/#spymon) · aktuelle Version **1.2**
+**Download:** [cappy0815.github.io](https://cappy0815.github.io/#spymon) · aktuelle Version **1.3**
+
+![SpyMon: Radarbild, Detailkarte zu einem Fund und Liste der WLAN-Netze mit Signalstärke](docs/screenshot.webp)
 
 ## Was SpyMon prüft
 
@@ -14,6 +17,7 @@ Signalstärke und Einstufung, jedes mit einer Erklärung in Klartext.
 |---|---|
 | `sweep` | alles: WLAN-Funknetze + Bluetooth + (falls verbunden) Hotel-LAN, mit Zusammenfassung |
 | `radar` | Umgebungsbild (auch ◉ oben): Punkt antippen = Klartext, Tipp und „Aufspüren“ |
+| `netze` | WLAN-Netze (WLAN-Symbol oben): Signal in dBm/Balken/Prozent, Band, Kanal, Kanalbreite, Verschlüsselung, Wi-Fi-Standard, Hersteller; alle 30 s neu |
 | `wifi` | WLAN-Funknetze in der Umgebung, ohne Verbindung: Kamera-typische Namen, Hersteller per MAC-Präfix, versteckte Netze |
 | `bt [s]` | Bluetooth LE + klassisch: AirTag/Find-My, Samsung SmartTag, Tile, Chipolo, Google Find Hub, Beacons, Mikrofon-/Kamera-Geräteklassen, Bastelmodule |
 | `lan` | im verbundenen WLAN: UPnP, ONVIF, Port-Sweep im eigenen /24, Web-Oberflächen |

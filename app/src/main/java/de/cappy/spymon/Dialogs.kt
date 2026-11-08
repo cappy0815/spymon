@@ -21,6 +21,14 @@ object Dialogs {
 
     /** Versionsgeschichte, neueste zuerst */
     val CHANGELOG = listOf(
+        "1.3" to listOf(
+            "Neu: WLAN-Netze – alle Funknetze der Umgebung als Liste mit Signalstärke (dBm, Balken, Prozent, Klartext)",
+            "Pro Netz: Band, Kanal, Kanalbreite, Verschlüsselung (offen/WEP gelb markiert), Wi-Fi-Standard, Hersteller",
+            "Gleiche Namen werden zu einem Netz gebündelt (Hotel-WLAN mit vielen Zugangspunkten) – umschaltbar auf „einzeln“",
+            "Filter nach 2,4 / 5 / 6 GHz, Sortierung nach Signal oder Name, Antippen klappt alle Zugangspunkte auf",
+            "Aktualisiert sich alle 30 Sekunden selbst; auffällige Netze mit Begründung und „Aufspüren“",
+            "Erreichbar über das WLAN-Symbol oben, »netze«, das Schnellmenü und den Knopf im Radar"
+        ),
         "1.2" to listOf(
             "Radar: Umgebungsbild mit deinem Handy in der Mitte – Geräte nach Funkart sortiert, Abstand nach Signalstärke, Farbe nach Einstufung",
             "Radar: Punkt antippen = Erklärung in Klartext, Tipp was zu tun ist, „Aufspüren“ direkt aus der Karte",
@@ -50,6 +58,7 @@ object Dialogs {
     val COMMANDS = listOf(
         "sweep" to "alles: WLAN + Bluetooth + Hotel-LAN",
         "radar" to "Umgebungsbild mit Klartext (◉ oben)",
+        "netze" to "WLAN-Netze mit Signalstärke (WLAN-Symbol oben)",
         "wifi" to "WLAN-Funknetze (ohne Verbindung)",
         "bt [s]" to "Bluetooth/BLE, Dauer laut ⚙ (oder s Sek.)",
         "lan" to "Hotel-WLAN nach Kameras absuchen",
@@ -317,6 +326,8 @@ object Dialogs {
                 item(a, c, "6", "»save« legt den Bericht unter Download/SpyMon ab, »share« schickt ihn weiter.")
                 c.addView(section(a, "Bedienung"))
                 item(a, c, "❯", "Befehl unten eintippen oder einen der Knöpfe darüber antippen. Pfeil hoch = letzter Befehl (Hardware-Tastatur).")
+                item(a, c, "📶", "WLAN-Netze (Symbol oben links neben ◉): alle Funknetze mit Signalstärke, Band, Kanal, Verschlüsselung und Hersteller. " +
+                    "Aktualisiert sich alle 30 s. Gleichnamige Zugangspunkte werden gebündelt – antippen klappt sie auf.")
                 item(a, c, "☰", "Lange drücken (oder Rechtsklick mit Maus) auf Konsole, Knöpfe oder ❯ öffnet das Schnellmenü mit allen Scans.")
                 item(a, c, "◉", "Radarbild: dein Handy in der Mitte, oben WLAN, rechts Bluetooth LE, unten Bluetooth, links Hotel-LAN. " +
                     "Je näher an der Mitte, desto stärker das Signal. Die Lage im Sektor ist keine Himmelsrichtung – " +
@@ -344,7 +355,7 @@ object Dialogs {
                 item(a, c, "[!!]", "verdächtig: Kamera-Name, Kamera-Hersteller, getrennter Tracker, Mikrofon/Kamera-Geräteklasse, Kamera-Dienste im LAN")
                 item(a, c, "[ ?]", "unklar: IoT-/Bastelchip, verstecktes Netz ganz nah, Beacon, unbekanntes Gerät ganz nah")
                 item(a, c, "[ok]", "harmlos nach allem, was erkennbar ist")
-                c.addView(note(a, "Kurzformen: all/check/scan = sweep, wlan = wifi, bluetooth = bt, net = lan, find = track, ls = list, " +
+                c.addView(note(a, "Kurzformen: all/check/scan = sweep, wlan = wifi, networks = netze, bluetooth = bt, net = lan, find = track, ls = list, " +
                     "cls = clear, hilfe/? = help, einstellungen/opt = settings, über = about, beenden/quit = exit."))
             }
             2 -> {

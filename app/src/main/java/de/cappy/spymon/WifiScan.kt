@@ -12,6 +12,13 @@ import android.os.Looper
 
 /** Scannt WLAN-Funknetze in der Umgebung – funktioniert OHNE mit einem WLAN verbunden zu sein. */
 class WifiScan(private val a: MainActivity) {
+    /** Grund, warum kein Scan möglich ist – oder null */
+    fun problem(): String? = when {
+        !wm.isWifiEnabled && !wm.isScanAlwaysAvailable -> "WLAN ist aus – bitte einschalten (verbinden ist nicht nötig)"
+        !a.locationOn() -> "Standort ist aus – ohne Standort liefert Android keine WLAN-Netze"
+        else -> null
+    }
+
     private val wm = a.applicationContext.getSystemService(WifiManager::class.java)
     private val h = Handler(Looper.getMainLooper())
     private val c get() = a.con
@@ -66,6 +73,7 @@ class WifiScan(private val a: MainActivity) {
         c.sub("${list.size} Netze · ${bad} verdächtig · ${unk} unklar")
         c.line()
         for (f in list) Fmt.print(c, f)
+        c.dim("  »netze« = übersichtliche Liste mit Signalstärke, Kanal, Verschlüsselung")
         c.line()
     }
 

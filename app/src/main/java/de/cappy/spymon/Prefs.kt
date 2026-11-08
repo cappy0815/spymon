@@ -44,6 +44,16 @@ object Prefs {
         get() = sp.getBoolean("radarAfterSweep", false)
         set(v) = sp.edit().putBoolean("radarAfterSweep", v).apply()
 
+    /** WLAN-Netze: gleiche Namen zu einem Eintrag bündeln */
+    var netsGroup: Boolean
+        get() = sp.getBoolean("netsGroup", true)
+        set(v) = sp.edit().putBoolean("netsGroup", v).apply()
+
+    /** WLAN-Netze: nach Name statt nach Signal sortieren */
+    var netsSortName: Boolean
+        get() = sp.getBoolean("netsSortName", false)
+        set(v) = sp.edit().putBoolean("netsSortName", v).apply()
+
     /** Display bleibt an, solange SpyMon im Vordergrund ist */
     var keepOn: Boolean
         get() = sp.getBoolean("keepOn", true)

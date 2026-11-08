@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3 (08.11.2026)
+- Neu: WLAN-Netze – alle Funknetze der Umgebung als Liste mit Signalstärke (dBm, Balken, Prozent, Klartext)
+- Pro Netz: Band, Kanal, Kanalbreite, Verschlüsselung (offen/WEP gelb markiert), Wi-Fi-Standard, Hersteller
+- Gleiche Namen werden zu einem Netz gebündelt (Hotel-WLAN mit vielen Zugangspunkten) – umschaltbar auf „einzeln“
+- Filter nach 2,4 / 5 / 6 GHz, Sortierung nach Signal oder Name, Antippen klappt alle Zugangspunkte auf
+- Aktualisiert sich alle 30 Sekunden selbst; auffällige Netze mit Begründung und „Aufspüren“
+- Erreichbar über das WLAN-Symbol oben, `netze`, das Schnellmenü und den Knopf im Radar
+
 ## 1.2 (08.11.2026)
 - Radar: Umgebungsbild mit deinem Handy in der Mitte – Geräte nach Funkart sortiert (oben WLAN, rechts Bluetooth LE, unten Bluetooth, links Hotel-LAN), Abstand nach Signalstärke, Farbe nach Einstufung
 - Radar: Punkt antippen = Erklärung in Klartext, Tipp was zu tun ist, „Aufspüren“ direkt aus der Karte

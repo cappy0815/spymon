@@ -334,6 +334,7 @@ class Radar(private val a: MainActivity) {
         // Knöpfe + Status
         val bar = LinearLayout(a).apply { gravity = Gravity.CENTER_VERTICAL; setPadding(a.dp(10), a.dp(4), a.dp(10), a.dp(10)) }
         bar.addView(a.chip("🔎 Sweep") { if (!a.isBusy()) a.exec("sweep") })
+        bar.addView(a.chip("📶 Netze") { a.showNets() })
         filterChip = a.chip("nur auffällige") { view.onlyNotable = !view.onlyNotable; paintFilter() }
         bar.addView(filterChip)
         statusTv.apply { textSize = 11f; setTextColor(Col.ORANGE); typeface = Typeface.MONOSPACE; setPadding(a.dp(6), 0, 0, 0); maxLines = 2 }

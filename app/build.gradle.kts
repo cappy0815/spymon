@@ -22,8 +22,8 @@ android {
         minSdk = 29
         targetSdk = 34
         // >>> Bei jeder Änderung beide hochzählen (und CHANGELOG in Dialogs.kt ergänzen) <<<
-        versionCode = 3
-        versionName = "1.2"
+        versionCode = 4
+        versionName = "1.3"
     }
 
     signingConfigs {

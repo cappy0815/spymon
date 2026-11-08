@@ -64,6 +64,7 @@ class MainActivity : Activity() {
     private val history = mutableListOf<String>()
     private var pendingCam: String? = null
     private var radar: Radar? = null
+    private var nets: Networks? = null
     private var touchX = 0
     private var touchY = 0
 
@@ -127,6 +128,11 @@ class MainActivity : Activity() {
             visibility = View.GONE
         }
         top.addView(updChip)
+        top.addView(WifiGlyph(this) { dp(it) }.apply {
+            layoutParams = LinearLayout.LayoutParams(dp(38), dp(38)).apply { leftMargin = dp(8) }
+            contentDescription = "WLAN-Netze"
+            setOnClickListener { showNets() }
+        })
         top.addView(iconBtn("◉") { showRadar() })
         top.addView(iconBtn("⚙") { Dialogs.settings(this) })
         top.addView(iconBtn("?") { Dialogs.help(this) })
@@ -152,7 +158,7 @@ class MainActivity : Activity() {
 
         // Schnellbefehle
         val chips = LinearLayout(this).apply { setPadding(dp(8), dp(4), dp(8), dp(4)) }
-        for (cmd in listOf("sweep", "radar", "wifi", "bt", "lan", "track", "ir", "lens", "list", "stop", "save", "share", "help", "clear"))
+        for (cmd in listOf("sweep", "radar", "netze", "wifi", "bt", "lan", "track", "ir", "lens", "list", "stop", "save", "share", "help", "clear"))
             chips.addView(chip(cmd) { exec(cmd) }.also { quickOn(it) })
         col.addView(HorizontalScrollView(this).apply { isHorizontalScrollBarEnabled = false; addView(chips) })
 
@@ -232,7 +238,7 @@ class MainActivity : Activity() {
         val arg = p.getOrNull(1)
         if (busy && p[0] !in setOf("stop", "help", "hilfe", "?", "clear", "cls", "list", "ls", "save", "share", "oui", "info",
                 "settings", "einstellungen", "opt", "options", "update", "about", "über", "version", "exit", "beenden", "quit",
-                "radar", "umgebung", "map")) {
+                "radar", "umgebung", "map", "netze", "networks", "nets")) {
             con.warn("Läuft noch … (»stop« bricht ab)"); return
         }
         when (p[0]) {
@@ -257,6 +263,7 @@ class MainActivity : Activity() {
             "update" -> updateCmd()
             "exit", "beenden", "quit" -> quit()
             "radar", "umgebung", "map" -> showRadar()
+            "netze", "networks", "nets" -> showNets()
             else -> con.err("Unbekannt: ${p[0]} – »help«")
         }
     }
@@ -428,7 +435,7 @@ class MainActivity : Activity() {
 
     // ---------------- Kamera ----------------
     private fun camMode(m: String) {
-        radar?.close()
+        radar?.close(); nets?.close()
         if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             pendingCam = m
             requestPermissions(arrayOf(Manifest.permission.CAMERA), 2); return
@@ -443,12 +450,24 @@ class MainActivity : Activity() {
     // ---------------- Radar ----------------
     fun showRadar() {
         if (radar != null) return
-        closeCam()
+        closeCam(); nets?.close()
         radar = Radar(this).also { it.show() }
     }
 
     fun radarOpen() = radar != null
     fun radarClosed() { radar = null }
+
+    // ---------------- WLAN-Netze ----------------
+    fun showNets() {
+        if (nets != null) return
+        closeCam(); radar?.close()
+        nets = Networks(this).also { it.show() }
+    }
+
+    fun netsClosed() { nets = null }
+    fun netsView() = nets
+    fun wifiScan() = wifi
+    fun wifiProblem() = wifi.problem()
     fun isBusy() = busy
     fun statusNow() = statusText
 
@@ -479,7 +498,8 @@ class MainActivity : Activity() {
         if (busy) item("⏹  Stopp") { exec("stop") }
         item("📡  Radar / Umgebung") { showRadar() }
         item("🔎  Sweep – alles prüfen") { exec("sweep") }
-        item("📶  WLAN-Funknetze") { exec("wifi") }
+        item("📶  WLAN-Netze mit Signalstärke") { showNets() }
+        item("📶  WLAN-Check (Konsole)") { exec("wifi") }
         item("🔵  Bluetooth (${Prefs.btSecs} s)") { exec("bt") }
         item("🔵  Bluetooth lang (60 s)") { exec("bt 60") }
         item("🌐  Hotel-WLAN durchsuchen") { exec("lan") }
@@ -512,6 +532,7 @@ class MainActivity : Activity() {
         when {
             cam != null -> closeCam()
             radar != null -> radar?.close()
+            nets != null -> nets?.close()
             else -> @Suppress("DEPRECATION") super.onBackPressed()
         }
     }
