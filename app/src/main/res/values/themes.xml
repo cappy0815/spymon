@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#FF0E0B09</color>
+    <color name="panel">#FF1A1411</color>
+    <color name="orange">#FFFF8A2B</color>
+    <style name="Sweep" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:statusBarColor">@color/bg</item>
+        <item name="android:navigationBarColor">@color/bg</item>
+        <item name="android:colorAccent">@color/orange</item>
+        <item name="android:colorPrimary">@color/orange</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+    <!-- Dialoge (Hilfe, Einstellungen, Update) im gleichen dunkel/orangen Stil -->
+    <style name="SweepDialog" parent="android:Theme.Material.Dialog.Alert">
+        <item name="android:colorAccent">@color/orange</item>
+        <item name="android:colorBackground">@color/panel</item>
+        <item name="android:textColorPrimary">#FFE8E0D8</item>
+    </style>
+</resources>
