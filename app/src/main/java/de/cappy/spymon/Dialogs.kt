@@ -21,6 +21,15 @@ object Dialogs {
 
     /** Versionsgeschichte, neueste zuerst */
     val CHANGELOG = listOf(
+        "1.2" to listOf(
+            "Radar: Umgebungsbild mit deinem Handy in der Mitte – Geräte nach Funkart sortiert, Abstand nach Signalstärke, Farbe nach Einstufung",
+            "Radar: Punkt antippen = Erklärung in Klartext, Tipp was zu tun ist, „Aufspüren“ direkt aus der Karte",
+            "Radar: Sweep direkt aus dem Bild starten, Bluetooth-Geräte erscheinen schon während des Scans, Filter „nur auffällige“",
+            "Schnellmenü: lange drücken (oder Rechtsklick mit Maus) auf Konsole, Knöpfe oder ❯ – Sweep, WLAN, Bluetooth kurz/lang, LAN, Aufspüren, IR, Linse, Kopieren",
+            "Kopfzeile in der Konsole ohne Rahmen, Trennlinien passen sich der Bildschirmbreite an (kein Umbruch mehr)",
+            "Einstellung: Radar nach dem Sweep automatisch zeigen",
+            "Neuer Befehl: radar"
+        ),
         "1.1" to listOf(
             "Neuer Name: SpyMon (vorher RoomSweep)",
             "Kopfleiste mit ⬆ Update (nur wenn neu), ⚙ Einstellungen und ? Hilfe",
@@ -40,6 +49,7 @@ object Dialogs {
     /** Befehlsliste – gemeinsam für »help« in der Konsole und die Hilfe */
     val COMMANDS = listOf(
         "sweep" to "alles: WLAN + Bluetooth + Hotel-LAN",
+        "radar" to "Umgebungsbild mit Klartext (◉ oben)",
         "wifi" to "WLAN-Funknetze (ohne Verbindung)",
         "bt [s]" to "Bluetooth/BLE, Dauer laut ⚙ (oder s Sek.)",
         "lan" to "Hotel-WLAN nach Kameras absuchen",
@@ -193,6 +203,12 @@ object Dialogs {
         box.addView(swBeep); box.addView(swVib)
         box.addView(note(a, "Beides aus = nur die Statuszeile mit dBm, Balken und heiß/kalt."))
 
+        // Radar
+        box.addView(section(a, "Radar ◉"))
+        val swRadar = toggle(a, "Nach dem Sweep automatisch das Radarbild zeigen", Prefs.radarAfterSweep)
+        box.addView(swRadar)
+        box.addView(note(a, "Sonst jederzeit über ◉ oben, »radar« oder das Schnellmenü (lange drücken)."))
+
         // Anzeige
         box.addView(section(a, "Anzeige"))
         val font = intArrayOf(Prefs.font)
@@ -237,6 +253,7 @@ object Dialogs {
                 Prefs.vibrate = swVib.isChecked
                 Prefs.font = font[0]
                 Prefs.keepOn = swKeep.isChecked
+                Prefs.radarAfterSweep = swRadar.isChecked
                 Update.setAuto(a, swUpd.isChecked)
                 a.applyPrefs()
                 a.con.ok("Einstellungen gespeichert")
@@ -293,16 +310,21 @@ object Dialogs {
                 c.addView(section(a, "So geht der Zimmer-Check"))
                 item(a, c, "1", "Standort und Bluetooth einschalten, WLAN an (verbinden ist NICHT nötig). Ohne Standort liefert Android keine Scan-Ergebnisse.")
                 item(a, c, "2", "»sweep« antippen: prüft WLAN-Funknetze, Bluetooth und – falls du verbunden bist – das Hotel-WLAN.")
-                item(a, c, "3", "Ergebnis lesen: [!!] verdächtig, [ ?] unklar, [ok] harmlos. Jeder Fund hat eine #Nummer.")
+                item(a, c, "3", "Ergebnis lesen: [!!] verdächtig, [ ?] unklar, [ok] harmlos. Jeder Fund hat eine #Nummer. " +
+                    "Zu nerdig? ◉ oben zeigt alles als Radarbild – Punkt antippen erklärt das Gerät in Klartext.")
                 item(a, c, "4", "Verdächtiges orten: »track <nr>« und langsam durchs Zimmer gehen – heiß/kalt mit Piepton und/oder Vibration (⚙).")
                 item(a, c, "5", "Sichtprüfung: »ir« zeigt Nachtsicht-LEDs mit der Frontkamera, »lens« findet Linsenreflexe mit Lampe und Rotfilter, »tips« ist die Checkliste.")
                 item(a, c, "6", "»save« legt den Bericht unter Download/SpyMon ab, »share« schickt ihn weiter.")
                 c.addView(section(a, "Bedienung"))
                 item(a, c, "❯", "Befehl unten eintippen oder einen der Knöpfe darüber antippen. Pfeil hoch = letzter Befehl (Hardware-Tastatur).")
+                item(a, c, "☰", "Lange drücken (oder Rechtsklick mit Maus) auf Konsole, Knöpfe oder ❯ öffnet das Schnellmenü mit allen Scans.")
+                item(a, c, "◉", "Radarbild: dein Handy in der Mitte, oben WLAN, rechts Bluetooth LE, unten Bluetooth, links Hotel-LAN. " +
+                    "Je näher an der Mitte, desto stärker das Signal. Die Lage im Sektor ist keine Himmelsrichtung – " +
+                    "die kann ein Handy nicht messen; dafür gibt es »Aufspüren«.")
                 item(a, c, "⬆", "Erscheint oben nur, wenn eine neue Version bereitliegt.")
-                item(a, c, "⚙", "Einstellungen: Scandauer, Hotel-LAN, Tracking-Signal, Schrift, Display, Updates, App beenden.")
-                item(a, c, "?", "Diese Hilfe. Text in der Konsole lässt sich markieren und kopieren.")
-                item(a, c, "↩", "Zurück-Taste schließt die Kamera-Ansicht (ir/lens).")
+                item(a, c, "⚙", "Einstellungen: Scandauer, Hotel-LAN, Tracking-Signal, Radar, Schrift, Display, Updates, App beenden.")
+                item(a, c, "?", "Diese Hilfe. Konsole kopieren: lange drücken → „Alles kopieren“.")
+                item(a, c, "↩", "Zurück-Taste schließt Radar und Kamera-Ansicht (ir/lens).")
                 c.addView(section(a, "Grenzen – ehrlich gesagt"))
                 item(a, c, "•", "Geräte ohne Funk (Kamera mit SD-Karte, Diktiergerät) sieht keine App – dafür »ir«, »lens« und »tips«.")
                 item(a, c, "•", "Ohne Root kein Monitor-Mode: in fremden WLANs sind nur Access Points sichtbar, keine einzelnen Geräte.")

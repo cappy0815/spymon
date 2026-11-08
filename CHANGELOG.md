@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2 (08.11.2026)
+- Radar: Umgebungsbild mit deinem Handy in der Mitte – Geräte nach Funkart sortiert (oben WLAN, rechts Bluetooth LE, unten Bluetooth, links Hotel-LAN), Abstand nach Signalstärke, Farbe nach Einstufung
+- Radar: Punkt antippen = Erklärung in Klartext, Tipp was zu tun ist, „Aufspüren“ direkt aus der Karte
+- Radar: Sweep direkt aus dem Bild starten, Bluetooth-Geräte erscheinen schon während des Scans, Filter „nur auffällige“
+- Schnellmenü: lange drücken (oder Rechtsklick mit Maus) auf Konsole, Knöpfe oder ❯
+- Kopfzeile in der Konsole ohne Rahmen, Trennlinien passen sich der Bildschirmbreite an (kein Umbruch mehr)
+- Einstellung: Radar nach dem Sweep automatisch zeigen
+- Neuer Befehl: `radar`
+
 ## 1.1 (08.11.2026)
 - Neuer Name: SpyMon (vorher RoomSweep), Paket `de.cappy.spymon`
 - Kopfleiste mit ⬆ Update (nur wenn neu), ⚙ Einstellungen und ? Hilfe

@@ -39,6 +39,11 @@ object Prefs {
     val fontSp get() = when (font) { 0 -> 10f; 2 -> 13f; else -> 11.5f }
     val fontName get() = when (font) { 0 -> "klein"; 2 -> "groß"; else -> "normal" }
 
+    /** Nach dem Sweep automatisch das Radarbild öffnen */
+    var radarAfterSweep: Boolean
+        get() = sp.getBoolean("radarAfterSweep", false)
+        set(v) = sp.edit().putBoolean("radarAfterSweep", v).apply()
+
     /** Display bleibt an, solange SpyMon im Vordergrund ist */
     var keepOn: Boolean
         get() = sp.getBoolean("keepOn", true)

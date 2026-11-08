@@ -2,15 +2,18 @@
 
 Android-App für den schnellen Zimmer-Check unterwegs: Hotelzimmer, Ferienwohnung oder Besprechungsraum
 auf versteckte Funk-Kameras, Bluetooth-Tracker, Wanzen und Kamera-Dienste im WLAN prüfen – plus
-Infrarot- und Linsen-Modus für die Sichtprüfung. Bedienung über eine schnelle Konsole (dunkel/orange).
+Infrarot- und Linsen-Modus für die Sichtprüfung. Bedienung über eine schnelle Konsole (dunkel/orange) –
+oder über das **Radarbild**: dein Handy in der Mitte, die gefundenen Geräte drumherum nach Funkart,
+Signalstärke und Einstufung, jedes mit einer Erklärung in Klartext.
 
-**Download:** [cappy0815.github.io](https://cappy0815.github.io/#spymon) · aktuelle Version **1.1**
+**Download:** [cappy0815.github.io](https://cappy0815.github.io/#spymon) · aktuelle Version **1.2**
 
 ## Was SpyMon prüft
 
 | Befehl | Funktion |
 |---|---|
 | `sweep` | alles: WLAN-Funknetze + Bluetooth + (falls verbunden) Hotel-LAN, mit Zusammenfassung |
+| `radar` | Umgebungsbild (auch ◉ oben): Punkt antippen = Klartext, Tipp und „Aufspüren“ |
 | `wifi` | WLAN-Funknetze in der Umgebung, ohne Verbindung: Kamera-typische Namen, Hersteller per MAC-Präfix, versteckte Netze |
 | `bt [s]` | Bluetooth LE + klassisch: AirTag/Find-My, Samsung SmartTag, Tile, Chipolo, Google Find Hub, Beacons, Mikrofon-/Kamera-Geräteklassen, Bastelmodule |
 | `lan` | im verbundenen WLAN: UPnP, ONVIF, Port-Sweep im eigenen /24, Web-Oberflächen |
@@ -21,6 +24,12 @@ Infrarot- und Linsen-Modus für die Sichtprüfung. Bedienung über eine schnelle
 | `settings`, `update`, `about`, `exit` | Einstellungen, Update-Prüfung, Über, App beenden |
 
 Markierungen: `[!!]` verdächtig · `[ ?]` unklar · `[ok]` harmlos. Jeder Fund bekommt eine `#nr`.
+
+**Schnellmenü:** lange drücken (oder Rechtsklick mit Maus) auf Konsole, Befehlsknöpfe oder `❯`.
+
+**Radar:** oben WLAN, rechts Bluetooth LE, unten Bluetooth, links Hotel-LAN. Je näher an der Mitte,
+desto stärker das Signal (Ringe bei −50, −65, −80 dBm). Die Lage innerhalb eines Sektors ist keine
+Himmelsrichtung – die kann ein Handy nicht messen; dafür gibt es `track`.
 
 ## Grenzen
 

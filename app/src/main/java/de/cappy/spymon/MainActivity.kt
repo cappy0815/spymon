@@ -4,6 +4,8 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.BroadcastReceiver
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -33,6 +35,7 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
+import android.widget.PopupWindow
 import android.widget.ScrollView
 import android.widget.TextView
 import java.text.SimpleDateFormat
@@ -60,6 +63,9 @@ class MainActivity : Activity() {
     private val frames = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
     private val history = mutableListOf<String>()
     private var pendingCam: String? = null
+    private var radar: Radar? = null
+    private var touchX = 0
+    private var touchY = 0
 
     fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 
@@ -121,6 +127,7 @@ class MainActivity : Activity() {
             visibility = View.GONE
         }
         top.addView(updChip)
+        top.addView(iconBtn("◉") { showRadar() })
         top.addView(iconBtn("⚙") { Dialogs.settings(this) })
         top.addView(iconBtn("?") { Dialogs.help(this) })
         col.addView(top)
@@ -128,12 +135,14 @@ class MainActivity : Activity() {
 
         tv = TextView(this).apply {
             typeface = Typeface.MONOSPACE; textSize = 11.5f; setTextColor(Col.FG)
-            setTextIsSelectable(true); setLineSpacing(0f, 1.08f)
+            setLineSpacing(0f, 1.08f)
             setPadding(dp(12), dp(8), dp(12), dp(8))
         }
+        quickOn(tv)
         val sv = ScrollView(this).apply { addView(tv); isFillViewport = true }
         col.addView(sv, LinearLayout.LayoutParams(-1, 0, 1f))
         con = Console(tv, sv)
+        con.availPx = { resources.displayMetrics.widthPixels - dp(24) }
 
         statusTv = TextView(this).apply {
             typeface = Typeface.MONOSPACE; textSize = 11.5f; setTextColor(Col.ORANGE)
@@ -143,8 +152,8 @@ class MainActivity : Activity() {
 
         // Schnellbefehle
         val chips = LinearLayout(this).apply { setPadding(dp(8), dp(4), dp(8), dp(4)) }
-        for (cmd in listOf("sweep", "wifi", "bt", "lan", "track", "ir", "lens", "list", "stop", "save", "share", "help", "clear"))
-            chips.addView(chip(cmd) { exec(cmd) })
+        for (cmd in listOf("sweep", "radar", "wifi", "bt", "lan", "track", "ir", "lens", "list", "stop", "save", "share", "help", "clear"))
+            chips.addView(chip(cmd) { exec(cmd) }.also { quickOn(it) })
         col.addView(HorizontalScrollView(this).apply { isHorizontalScrollBarEnabled = false; addView(chips) })
 
         // Eingabezeile
@@ -153,7 +162,7 @@ class MainActivity : Activity() {
             setPadding(dp(12), dp(6), dp(12), dp(10))
             background = GradientDrawable().apply { setColor(Col.PANEL); setStroke(dp(1), Col.ORANGE_DIM); cornerRadius = dp(10).toFloat() }
         }
-        inRow.addView(TextView(this).apply { text = "❯ "; typeface = Typeface.MONOSPACE; textSize = 15f; setTextColor(Col.ORANGE) })
+        inRow.addView(TextView(this).apply { text = "❯ "; typeface = Typeface.MONOSPACE; textSize = 15f; setTextColor(Col.ORANGE) }.also { quickOn(it) })
         input = EditText(this).apply {
             typeface = Typeface.MONOSPACE; textSize = 14f; setTextColor(Col.FG); setHintTextColor(Col.DIM)
             hint = "befehl eingeben … (help)"; background = null; isSingleLine = true
@@ -204,13 +213,12 @@ class MainActivity : Activity() {
     fun status(t: String?) { statusText = t }
 
     private fun banner() {
-        con.line("╭───────────────────────────────────────╮", Col.ORANGE)
-        con.parts("│ " to Col.ORANGE, "✻ " to Col.ORANGE, "SpyMon " to Col.FG, ("v" + Update.installed(this)).padEnd(28) to Col.DIM, " │" to Col.ORANGE)
-        con.parts("│ " to Col.ORANGE, "  Spy Monitor · Zimmer-Check".padEnd(37) to Col.DIM, " │" to Col.ORANGE)
-        con.line("╰───────────────────────────────────────╯", Col.ORANGE)
+        con.parts("✻ " to Col.ORANGE, "SpyMon " to Col.FG, "v" + Update.installed(this) to Col.DIM)
+        con.dim("  Spy Monitor · Zimmer-Check")
+        con.fill("", "─", Col.ORANGE_DIM)
         con.dim("  Hersteller-DB: ${oui.size} Einträge")
-        con.dim("  »sweep« = alles scannen · »help« = Befehle")
-        con.dim("  ⚙ = Einstellungen · ? = Hilfe")
+        con.dim("  »sweep« = alles prüfen · ◉ = Radarbild")
+        con.dim("  lange drücken = Schnellmenü · ? = Hilfe")
         con.line()
     }
 
@@ -223,7 +231,8 @@ class MainActivity : Activity() {
         val p = cmd.lowercase(Locale.ROOT).split(Regex("\\s+"))
         val arg = p.getOrNull(1)
         if (busy && p[0] !in setOf("stop", "help", "hilfe", "?", "clear", "cls", "list", "ls", "save", "share", "oui", "info",
-                "settings", "einstellungen", "opt", "options", "update", "about", "über", "version", "exit", "beenden", "quit")) {
+                "settings", "einstellungen", "opt", "options", "update", "about", "über", "version", "exit", "beenden", "quit",
+                "radar", "umgebung", "map")) {
             con.warn("Läuft noch … (»stop« bricht ab)"); return
         }
         when (p[0]) {
@@ -247,6 +256,7 @@ class MainActivity : Activity() {
             "about", "über", "version" -> Dialogs.help(this, 3)
             "update" -> updateCmd()
             "exit", "beenden", "quit" -> quit()
+            "radar", "umgebung", "map" -> showRadar()
             else -> con.err("Unbekannt: ${p[0]} – »help«")
         }
     }
@@ -300,10 +310,10 @@ class MainActivity : Activity() {
     }
 
     private fun summary(secs: Long) {
-        val all = findings.all.toList()
+        val all = findings.snapshot()
         val bad = all.filter { it.level == 2 }
         val unk = all.filter { it.level == 1 }
-        con.line("═════════════ ERGEBNIS (${secs}s) ═════════════", Col.ORANGE)
+        con.fill("══ ERGEBNIS (${secs}s) ", "═", Col.ORANGE)
         con.parts("  " to Col.FG, "${bad.size} verdächtig" to if (bad.isEmpty()) Col.GRN else Col.RED,
             " · " to Col.DIM, "${unk.size} unklar" to Col.YEL, " · ${all.size} gesamt" to Col.DIM)
         con.line()
@@ -316,7 +326,9 @@ class MainActivity : Activity() {
             con.line()
             con.dim("  »track <nr>« = aufspüren · »lens« = Linse suchen")
         }
+        con.dim("  ◉ oben = Radarbild mit Klartext zu jedem Gerät")
         con.line("❯ bereit", Col.DIM)
+        if (Prefs.radarAfterSweep && radar == null) showRadar()
     }
 
     private fun list() {
@@ -416,6 +428,7 @@ class MainActivity : Activity() {
 
     // ---------------- Kamera ----------------
     private fun camMode(m: String) {
+        radar?.close()
         if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             pendingCam = m
             requestPermissions(arrayOf(Manifest.permission.CAMERA), 2); return
@@ -427,9 +440,80 @@ class MainActivity : Activity() {
 
     fun closeCam() { cam?.close(); cam = null }
 
+    // ---------------- Radar ----------------
+    fun showRadar() {
+        if (radar != null) return
+        closeCam()
+        radar = Radar(this).also { it.show() }
+    }
+
+    fun radarOpen() = radar != null
+    fun radarClosed() { radar = null }
+    fun isBusy() = busy
+    fun statusNow() = statusText
+
+    // ---------------- Schnellmenü (lange drücken / Rechtsklick) ----------------
+    @SuppressLint("ClickableViewAccessibility")
+    private fun quickOn(v: View) {
+        v.setOnTouchListener { _, e -> touchX = e.rawX.toInt(); touchY = e.rawY.toInt(); false }
+        v.setOnHoverListener { _, e -> touchX = e.rawX.toInt(); touchY = e.rawY.toInt(); false }
+        v.setOnLongClickListener { quickMenu(); true }
+        v.setOnContextClickListener { quickMenu(); true }   // Maus-Rechtsklick (z. B. DeX)
+    }
+
+    private fun quickMenu() {
+        val box = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(4), dp(6), dp(4), dp(6))
+            background = GradientDrawable().apply { setColor(Col.PANEL); setStroke(dp(1), Col.ORANGE_DIM); cornerRadius = dp(12).toFloat() }
+        }
+        val pw = PopupWindow(box, -2, -2, true).apply { elevation = dp(10).toFloat() }
+        fun head(t: String) = box.addView(TextView(this).apply {
+            text = t; textSize = 11f; setTextColor(Col.DIM); typeface = Typeface.MONOSPACE; setPadding(dp(14), dp(6), dp(14), dp(2))
+        })
+        fun item(t: String, on: () -> Unit) = box.addView(TextView(this).apply {
+            text = t; textSize = 15f; setTextColor(Col.FG); setPadding(dp(14), dp(9), dp(22), dp(9))
+            setOnClickListener { pw.dismiss(); on() }
+        })
+        head("SCHNELLSCAN")
+        if (busy) item("⏹  Stopp") { exec("stop") }
+        item("📡  Radar / Umgebung") { showRadar() }
+        item("🔎  Sweep – alles prüfen") { exec("sweep") }
+        item("📶  WLAN-Funknetze") { exec("wifi") }
+        item("🔵  Bluetooth (${Prefs.btSecs} s)") { exec("bt") }
+        item("🔵  Bluetooth lang (60 s)") { exec("bt 60") }
+        item("🌐  Hotel-WLAN durchsuchen") { exec("lan") }
+        val top = findings.snapshot().filter { (it.src == Src.BLE || it.src == Src.WLAN) && it.level > 0 }
+            .sortedWith(compareByDescending<Finding> { it.level }.thenByDescending { it.rssi ?: -200 }).firstOrNull()
+        if (top != null) item("🎯  Aufspüren: #${top.id} ${top.title.take(18)}") { exec("track ${top.id}") }
+        head("SICHTPRÜFUNG")
+        item("🌙  IR-Modus (Nachtsicht-LEDs)") { exec("ir") }
+        item("🔦  Linsen-Suche") { exec("lens") }
+        head("KONSOLE")
+        item("📋  Alles kopieren") { copyLog() }
+        item("💾  Bericht speichern") { exec("save") }
+        item("🧹  Bildschirm leeren") { exec("clear") }
+
+        box.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        val dm = resources.displayMetrics
+        val x = touchX.coerceIn(dp(8), (dm.widthPixels - box.measuredWidth - dp(8)).coerceAtLeast(dp(8)))
+        val y = touchY.coerceIn(dp(24), (dm.heightPixels - box.measuredHeight - dp(24)).coerceAtLeast(dp(24)))
+        pw.showAtLocation(root, Gravity.TOP or Gravity.START, x, y)
+    }
+
+    private fun copyLog() {
+        val txt = synchronized(con.log) { con.log.toString() }
+        getSystemService(ClipboardManager::class.java)?.setPrimaryClip(ClipData.newPlainText("SpyMon", txt))
+        con.ok("Konsole kopiert (${txt.lines().size} Zeilen)")
+    }
+
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        if (cam != null) closeCam() else @Suppress("DEPRECATION") super.onBackPressed()
+        when {
+            cam != null -> closeCam()
+            radar != null -> radar?.close()
+            else -> @Suppress("DEPRECATION") super.onBackPressed()
+        }
     }
 
     // ---------------- Bericht ----------------

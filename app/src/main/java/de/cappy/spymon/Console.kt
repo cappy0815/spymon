@@ -25,6 +25,26 @@ class Console(private val tv: TextView, private val sv: ScrollView) {
     private val h = Handler(Looper.getMainLooper())
     val log = StringBuilder()
 
+    /** verfügbare Zeilenbreite in Pixeln (wird von der Activity gesetzt) */
+    var availPx: () -> Int = { tv.width - tv.paddingLeft - tv.paddingRight }
+
+    /**
+     * Zeile mit einem Zeichen (─, ═) bis zum Rand auffüllen. Gemessen wird mit der echten Schrift:
+     * Rahmenzeichen kommen oft aus einer Ersatzschrift und sind breiter als die Monospace-Zeichen –
+     * feste Längen brechen deshalb auf dem Handy um.
+     */
+    fun fill(prefix: String, ch: String, color: Int) {
+        val p = tv.paint
+        val w = availPx()
+        var s = prefix
+        if (w > 0) {
+            val n = ((w - p.measureText(prefix)) / p.measureText(ch)).toInt() - 1
+            if (n > 0) s += ch.repeat(n)
+            while (s.length > prefix.length && p.measureText(s) > w) s = s.dropLast(1)
+        }
+        line(s, color)
+    }
+
     /** Eine Zeile aus mehreren farbigen Teilen. */
     fun parts(vararg p: Pair<String, Int>) {
         val text = p.joinToString("") { it.first }
@@ -99,6 +119,10 @@ class Findings {
 
     @Synchronized
     fun reset() { all.clear(); next = 1 }
+
+    /** Kopie für Radar/Anzeige (Scans schreiben aus anderen Threads) */
+    @Synchronized
+    fun snapshot(): List<Finding> = all.toList()
 }
 
 object Fmt {

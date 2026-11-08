@@ -96,6 +96,8 @@ class BtScan(private val a: MainActivity) {
                     analyse(list)
                     done()
                 } else {
+                    // Radar offen: Zwischenstand schon live einblenden (die Konsole bekommt die Liste am Ende)
+                    if (a.radarOpen() && left % 2 == 0) synchronized(seen) { seen.values.toList() }.forEach { a.findings.put(classify(it)) }
                     if (left % 12 == 0) try { ad!!.startDiscovery() } catch (_: Exception) {}
                     h.postDelayed(this, 1000)
                 }
