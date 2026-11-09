@@ -7,7 +7,7 @@ oder über das **Radarbild**: dein Handy in der Mitte, die gefundenen Geräte dr
 Signalstärke und Einstufung, jedes mit einer Erklärung in Klartext. Dazu eine Liste aller WLAN-Netze
 der Umgebung mit Signalstärke, Kanal und Verschlüsselung.
 
-**Download:** [cappy0815.github.io](https://cappy0815.github.io/#spymon) · aktuelle Version **1.3**
+**Download:** [cappy0815.github.io](https://cappy0815.github.io/#spymon) · aktuelle Version **1.4**
 
 ![SpyMon: Radarbild, Detailkarte zu einem Fund und Liste der WLAN-Netze mit Signalstärke](docs/screenshot.webp)
 
@@ -22,7 +22,7 @@ der Umgebung mit Signalstärke, Kanal und Verschlüsselung.
 | `bt [s]` | Bluetooth LE + klassisch: AirTag/Find-My, Samsung SmartTag, Tile, Chipolo, Google Find Hub, Beacons, Mikrofon-/Kamera-Geräteklassen, Bastelmodule |
 | `lan` | im verbundenen WLAN: UPnP, ONVIF, Port-Sweep im eigenen /24, Web-Oberflächen |
 | `track <nr>` | heiß/kalt-Suche nach einem Fund mit Piepton und/oder Vibration |
-| `ir` | Frontkamera macht Infrarot-LEDs von Nachtsicht-Kameras sichtbar |
+| `ir` | Kamera macht Infrarot-LEDs von Nachtsicht-Kameras sichtbar (Haupt- oder Frontkamera umschaltbar – mit TV-Fernbedienung testen, welche IR sieht) |
 | `lens` | Hauptkamera + Lampe + Rotfilter für Linsenreflexe |
 | `list`, `tips`, `save`, `share`, `oui <mac>`, `info` | Funde, Checkliste, Bericht, Hersteller-Abfrage, Status |
 | `settings`, `update`, `about`, `exit` | Einstellungen, Update-Prüfung, Über, App beenden |
@@ -33,7 +33,9 @@ Markierungen: `[!!]` verdächtig · `[ ?]` unklar · `[ok]` harmlos. Jeder Fund 
 
 **Radar:** oben WLAN, rechts Bluetooth LE, unten Bluetooth, links Hotel-LAN. Je näher an der Mitte,
 desto stärker das Signal (Ringe bei −50, −65, −80 dBm). Die Lage innerhalb eines Sektors ist keine
-Himmelsrichtung – die kann ein Handy nicht messen; dafür gibt es `track`.
+Himmelsrichtung – die kann ein Handy nicht messen; dafür gibt es `track`. Für volle Umgebungen gibt es
+Filter (Funkarten, Einstufung, Mindestsignal mit Zoom, Höchstzahl, gleichnamige WLANs bündeln) und
+„bekannte“ Geräte, die sich ausblenden lassen. Das Urteil oben zählt trotzdem alle Funde.
 
 ## Grenzen
 

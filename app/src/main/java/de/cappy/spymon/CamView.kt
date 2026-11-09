@@ -20,11 +20,12 @@ import android.widget.TextView
 
 /**
  * Kamera-Modi:
- *  ir   = Frontkamera (oft schwächerer IR-Filter) → Infrarot-LEDs von Nachtsicht-Kameras als helle Punkte
+ *  ir   = Infrarot-LEDs von Nachtsicht-Kameras als helle Punkte. Hauptkamera (Standard) oder Frontkamera,
+ *         umschaltbar – welche Kamera IR durchlässt, ist je Handy verschieden (Test mit TV-Fernbedienung).
  *  lens = Hauptkamera + Taschenlampe + Rotfilter → Kameralinsen reflektieren als Glitzerpunkt
  */
 @SuppressLint("MissingPermission", "SetTextI18n")
-class CamView(private val a: MainActivity, private val front: Boolean, private val torch: Boolean) {
+class CamView(private val a: MainActivity, private var front: Boolean, private val torch: Boolean, private val ir: Boolean = !torch) {
     private val frame = FrameLayout(a)
     private val tex = TextureView(a)
     private var dev: CameraDevice? = null
@@ -32,6 +33,7 @@ class CamView(private val a: MainActivity, private val front: Boolean, private v
     private val th = HandlerThread("cam").apply { start() }
     private val h = Handler(th.looper)
     private var tint: View? = null
+    private lateinit var hint: TextView
 
     fun show() {
         frame.setBackgroundColor(Col.BG)
@@ -41,16 +43,10 @@ class CamView(private val a: MainActivity, private val front: Boolean, private v
             tint = View(a).apply { setBackgroundColor(0x66FF0000) }
             frame.addView(tint, FrameLayout.LayoutParams(-1, -1))
         }
-        val hint = TextView(a).apply {
+        hint = TextView(a).apply {
             typeface = Typeface.MONOSPACE; textSize = 12f; setTextColor(Col.FG)
             setBackgroundColor(0xCC0E0B09.toInt()); setPadding(28, 20, 28, 20)
-            text = if (!torch)
-                "● IR-MODUS (Frontkamera)\n" +
-                    "  Licht im Zimmer AUS. Langsam schwenken:\n" +
-                    "  Rauchmelder, Wecker, Ladegeräte, TV, Bilder,\n" +
-                    "  Lüftung, Steckdosen. Lila/weiße Punkte = IR!\n" +
-                    "  Test: TV-Fernbedienung in die Kamera halten\n" +
-                    "  und Taste drücken – blinkt es, sieht sie IR."
+            text = if (!torch) irText()
             else
                 "● LINSEN-SUCHE (Lampe + Rotfilter)\n" +
                     "  Raum abdunkeln, Handy auf Augenhöhe,\n" +
@@ -59,10 +55,17 @@ class CamView(private val a: MainActivity, private val front: Boolean, private v
                     "  ›mitwandert‹. Nah ran an Verdächtiges!"
         }
         frame.addView(hint, FrameLayout.LayoutParams(-1, -2, Gravity.TOP))
-        val bar = LinearLayout(a).apply { gravity = Gravity.CENTER; setPadding(0, 0, 0, 40) }
-        if (torch) bar.addView(a.chip("filter") { tint?.let { it.visibility = if (it.visibility == View.VISIBLE) View.GONE else View.VISIBLE } })
-        bar.addView(a.chip("✕ schließen") { a.closeCam() })
+        val bar = if (torch) a.btnRow(
+            "Rotfilter" to { tint?.let { it.visibility = if (it.visibility == View.VISIBLE) View.GONE else View.VISIBLE } },
+            "✕ Schließen" to { a.closeCam() })
+        else a.btnRow(
+            "Hauptkamera" to { switchCam(false) },
+            "Frontkamera" to { switchCam(true) },
+            "✕ Schließen" to { a.closeCam() })
+        camBar = bar
+        bar.setPadding(a.dp(8), 0, a.dp(8), a.dp(16))
         frame.addView(bar, FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM))
+        paintBar()
         a.root.addView(frame, FrameLayout.LayoutParams(-1, -1))
 
         tex.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
@@ -70,6 +73,37 @@ class CamView(private val a: MainActivity, private val front: Boolean, private v
             override fun onSurfaceTextureSizeChanged(s: SurfaceTexture, w: Int, hh: Int) {}
             override fun onSurfaceTextureDestroyed(s: SurfaceTexture) = true
             override fun onSurfaceTextureUpdated(s: SurfaceTexture) {}
+        }
+    }
+
+    private var camBar: LinearLayout? = null
+
+    private fun irText() =
+        "● IR-MODUS (" + (if (front) "Frontkamera" else "Hauptkamera") + ")\n" +
+            "  Licht im Zimmer AUS. Langsam schwenken:\n" +
+            "  Rauchmelder, Wecker, Ladegeräte, TV, Bilder,\n" +
+            "  Lüftung, Steckdosen. Lila/weiße Punkte = IR!\n" +
+            "  Erst testen: TV-Fernbedienung in die Kamera\n" +
+            "  halten, Taste drücken – blinkt es, sieht diese\n" +
+            "  Kamera IR. Sonst die andere Kamera nehmen."
+
+    private fun paintBar() {
+        val b = camBar ?: return
+        if (ir) with(a) { sel(b.btns[0], !front); sel(b.btns[1], front) }
+    }
+
+    /** IR-Modus: zwischen Haupt- und Frontkamera wechseln (Wahl wird gemerkt) */
+    private fun switchCam(toFront: Boolean) {
+        if (toFront == front) return
+        front = toFront
+        Prefs.irFront = toFront
+        hint.text = irText()
+        paintBar()
+        h.post {
+            try { ses?.close() } catch (_: Exception) {}
+            try { dev?.close() } catch (_: Exception) {}
+            ses = null; dev = null
+            a.runOnUiThread { if (tex.isAvailable) open() }
         }
     }
 

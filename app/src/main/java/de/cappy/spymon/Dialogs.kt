@@ -21,6 +21,14 @@ object Dialogs {
 
     /** Versionsgeschichte, neueste zuerst */
     val CHANGELOG = listOf(
+        "1.4" to listOf(
+            "IR-Modus: Umschalter Hauptkamera / Frontkamera, Standard ist jetzt die Hauptkamera; die Wahl wird gemerkt",
+            "Radar: Filter für Funkarten, Einstufung, Mindestsignal, Höchstzahl (stärkste zuerst), Beschriftung",
+            "Radar: gleichnamige WLAN-Zugangspunkte zu einem Punkt bündeln (×Anzahl am Punkt)",
+            "Radar: Geräte als „bekannt“ markieren (eigener Router, eigene Uhr …) und ausblenden",
+            "Radar: Warnung, wenn ein Filter verdächtige Geräte ausblendet",
+            "Alle Knopfreihen unten gleich breit und einzeilig (Radar, Netze, Kamera, Karten)"
+        ),
         "1.3" to listOf(
             "Neu: WLAN-Netze – alle Funknetze der Umgebung als Liste mit Signalstärke (dBm, Balken, Prozent, Klartext)",
             "Pro Netz: Band, Kanal, Kanalbreite, Verschlüsselung (offen/WEP gelb markiert), Wi-Fi-Standard, Hersteller",
@@ -322,7 +330,7 @@ object Dialogs {
                 item(a, c, "3", "Ergebnis lesen: [!!] verdächtig, [ ?] unklar, [ok] harmlos. Jeder Fund hat eine #Nummer. " +
                     "Zu nerdig? ◉ oben zeigt alles als Radarbild – Punkt antippen erklärt das Gerät in Klartext.")
                 item(a, c, "4", "Verdächtiges orten: »track <nr>« und langsam durchs Zimmer gehen – heiß/kalt mit Piepton und/oder Vibration (⚙).")
-                item(a, c, "5", "Sichtprüfung: »ir« zeigt Nachtsicht-LEDs mit der Frontkamera, »lens« findet Linsenreflexe mit Lampe und Rotfilter, »tips« ist die Checkliste.")
+                item(a, c, "5", "Sichtprüfung: »ir« zeigt Nachtsicht-LEDs (Haupt- oder Frontkamera umschaltbar – erst mit TV-Fernbedienung testen, welche IR sieht), »lens« findet Linsenreflexe mit Lampe und Rotfilter, »tips« ist die Checkliste.")
                 item(a, c, "6", "»save« legt den Bericht unter Download/SpyMon ab, »share« schickt ihn weiter.")
                 c.addView(section(a, "Bedienung"))
                 item(a, c, "❯", "Befehl unten eintippen oder einen der Knöpfe darüber antippen. Pfeil hoch = letzter Befehl (Hardware-Tastatur).")
@@ -332,6 +340,8 @@ object Dialogs {
                 item(a, c, "◉", "Radarbild: dein Handy in der Mitte, oben WLAN, rechts Bluetooth LE, unten Bluetooth, links Hotel-LAN. " +
                     "Je näher an der Mitte, desto stärker das Signal. Die Lage im Sektor ist keine Himmelsrichtung – " +
                     "die kann ein Handy nicht messen; dafür gibt es »Aufspüren«.")
+                item(a, c, "▤", "Zu voll? Radar → »Filter«: Funkarten, Einstufung, Mindestsignal, Höchstzahl, gleichnamige WLANs bündeln. " +
+                    "Eigene Geräte in der Karte mit „✓ Kenn ich“ markieren – sie verschwinden dann. Das Urteil oben zählt trotzdem alles mit.")
                 item(a, c, "⬆", "Erscheint oben nur, wenn eine neue Version bereitliegt.")
                 item(a, c, "⚙", "Einstellungen: Scandauer, Hotel-LAN, Tracking-Signal, Radar, Schrift, Display, Updates, App beenden.")
                 item(a, c, "?", "Diese Hilfe. Konsole kopieren: lange drücken → „Alles kopieren“.")

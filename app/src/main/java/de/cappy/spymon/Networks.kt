@@ -207,19 +207,17 @@ class Networks(private val a: MainActivity) {
         col.addView(sum); col.addView(stat)
 
         // Filter / Sortierung
-        val fr = LinearLayout(a).apply { gravity = Gravity.CENTER_VERTICAL; setPadding(a.dp(10), a.dp(2), a.dp(10), a.dp(6)) }
-        for ((k, t) in listOf("b0" to "Alle", "b2" to "2,4", "b5" to "5", "b6" to "6 GHz")) {
-            val c = a.chip(t) { band = k.drop(1).toInt(); render() }
-            chips[k] = c; fr.addView(c)
-        }
-        fr.addView(View(a), LinearLayout.LayoutParams(0, 1, 1f))
-        val hsv = android.widget.HorizontalScrollView(a).apply { isHorizontalScrollBarEnabled = false; addView(fr) }
-        col.addView(hsv)
-        val fr2 = LinearLayout(a).apply { gravity = Gravity.CENTER_VERTICAL; setPadding(a.dp(10), 0, a.dp(10), a.dp(6)) }
-        chips["sort"] = a.chip("") { byName = !byName; Prefs.netsSortName = byName; render() }.also { fr2.addView(it) }
-        chips["grp"] = a.chip("") { group = !group; Prefs.netsGroup = group; render() }.also { fr2.addView(it) }
-        fr2.addView(View(a), LinearLayout.LayoutParams(0, 1, 1f))
-        chips["scan"] = a.chip("↻ Scan") { if (!scanning) scan() }.also { fr2.addView(it) }
+        // Filter / Sortierung: gleich breite, einzeilige Knöpfe
+        val fr = a.btnRow("Alle" to { band = 0; render() }, "2,4 GHz" to { band = 2; render() },
+            "5 GHz" to { band = 5; render() }, "6 GHz" to { band = 6; render() })
+        fr.setPadding(a.dp(7), a.dp(2), a.dp(7), a.dp(6))
+        with(a) { listOf("b0", "b2", "b5", "b6").forEachIndexed { i, k -> chips[k] = fr.btns[i] } }
+        col.addView(fr)
+        val fr2 = a.btnRow("" to { byName = !byName; Prefs.netsSortName = byName; render() },
+            "" to { group = !group; Prefs.netsGroup = group; render() },
+            "↻ Scan" to { if (!scanning) scan() })
+        fr2.setPadding(a.dp(7), 0, a.dp(7), a.dp(6))
+        with(a) { chips["sort"] = fr2.btns[0]; chips["grp"] = fr2.btns[1]; chips["scan"] = fr2.btns[2] }
         col.addView(fr2)
         col.addView(View(a).apply { setBackgroundColor(Col.ORANGE_DIM) }, LinearLayout.LayoutParams(-1, a.dp(1)))
 
@@ -280,13 +278,7 @@ class Networks(private val a: MainActivity) {
         chips["scan"]?.alpha = if (scanning) 0.5f else 1f
     }
 
-    private fun paintChip(c: TextView?, on: Boolean) {
-        c ?: return
-        c.setTextColor(if (on) Col.BG else Col.ORANGE)
-        c.background = GradientDrawable().apply {
-            setColor(if (on) Col.ORANGE else Col.PANEL); setStroke(a.dp(1), Col.ORANGE_DIM); cornerRadius = a.dp(14).toFloat()
-        }
-    }
+    private fun paintChip(c: TextView?, on: Boolean) { if (c != null) a.sel(c, on) }
 
     private fun render() {
         for (b in listOf(0, 2, 5, 6)) paintChip(chips["b$b"], band == b)
@@ -380,7 +372,8 @@ class Networks(private val a: MainActivity) {
             }
             val f = best.finding
             val br = LinearLayout(a).apply { gravity = Gravity.END; setPadding(0, a.dp(4), 0, 0) }
-            if (f != null) br.addView(a.chip("🎯 Aufspüren #${f.id}") { close(); a.exec("track ${f.id}") })
+            if (f != null) br.addView(a.btn("🎯 Aufspüren #${f.id}") { close(); a.exec("track ${f.id}") },
+                LinearLayout.LayoutParams(a.dp(190), a.dp(40)))
             box.addView(br)
         }
         box.setOnClickListener { if (!open.add(key)) open.remove(key); render() }

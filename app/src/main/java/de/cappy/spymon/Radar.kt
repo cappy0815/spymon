@@ -38,8 +38,10 @@ import kotlin.math.sin
  */
 @SuppressLint("ViewConstructor")
 class RadarView(ctx: Context, private val dp: (Int) -> Int) : View(ctx) {
-    var onlyNotable = false
-        set(v) { field = v; relayout(); invalidate() }
+    /** Beschriftung: 0 automatisch, 1 alle, 2 nur auffällige */
+    var labels = 0
+    /** gebündelte WLAN-Punkte: id → Anzahl Zugangspunkte */
+    var badges: Map<String, Int> = emptyMap()
     var selected: String? = null
     var onPick: ((Finding?) -> Unit)? = null
 
@@ -70,11 +72,6 @@ class RadarView(ctx: Context, private val dp: (Int) -> Int) : View(ctx) {
         /** Sektor-Mitte in Grad (0° = rechts, im Uhrzeigersinn) */
         fun sectorAngle(s: Src) = when (s) { Src.WLAN -> -90f; Src.BLE -> 0f; Src.BT -> 90f; Src.LAN -> 180f }
         fun sectorName(s: Src) = when (s) { Src.WLAN -> "WLAN"; Src.BLE -> "BLUETOOTH LE"; Src.BT -> "BLUETOOTH"; Src.LAN -> "HOTEL-LAN" }
-        /**
-         * Signal → Abstand (0 = Mitte, 1 = Rand). Innen 0..0.2 bleibt fürs Handy frei,
-         * −40 dBm liegt bei 0.2, −95 dBm am Rand. Ohne Signal (LAN) = ganz außen.
-         */
-        fun rFrac(rssi: Int?): Float = if (rssi == null) 0.95f else (0.2f + 0.8f * (((-rssi) - 40) / 55f)).coerceIn(0.24f, 0.97f)
         fun id(f: Finding) = f.src.name + "|" + f.key
     }
 
@@ -86,7 +83,7 @@ class RadarView(ctx: Context, private val dp: (Int) -> Int) : View(ctx) {
         invalidate()
     }
 
-    private fun visible() = if (onlyNotable) items.filter { it.level > 0 } else items
+    private fun visible() = items
 
     private fun geom(): FloatArray {
         val cx = width / 2f
@@ -109,7 +106,7 @@ class RadarView(ctx: Context, private val dp: (Int) -> Int) : View(ctx) {
                 val base = if (l.size == 1) 0f else -33f + 66f * i / (l.size - 1)
                 c + base + (h(id(l[i])) - 0.5f) * 6f
             }
-            val rad = FloatArray(l.size) { rFrac(l[it].rssi) }
+            val rad = FloatArray(l.size) { rf(l[it].rssi) }
             if (rr > 0) repeat(30) {
                 for (i in l.indices) for (j in i + 1 until l.size) {
                     val ai = Math.toRadians(ang[i].toDouble()); val aj = Math.toRadians(ang[j].toDouble())
@@ -157,7 +154,9 @@ class RadarView(ctx: Context, private val dp: (Int) -> Int) : View(ctx) {
 
         // Ringe + Beschriftung (Abstandsbänder)
         // Grenzen wie in der Konsole (Fmt.dist): ≥ −50 sehr nah, ≥ −65 nah, ≥ −80 mittel, sonst weit
-        val bands = listOf(rFrac(-50) to "sehr nah", rFrac(-65) to "nah", rFrac(-80) to "mittel", 1f to "weit")
+        val zoomed = edgeRssi > -95
+        val bands = listOf(ringF(-50) to "sehr nah", ringF(-65) to "nah", ringF(-80) to "mittel")
+            .filter { it.first < 0.97f } + (1f to (if (zoomed) "bis $edgeRssi dBm" else "weit"))
         var inner = 0.2f
         c.drawCircle(cx, cy, r * inner, pLine)
         pText.textAlign = Paint.Align.CENTER
@@ -208,7 +207,7 @@ class RadarView(ctx: Context, private val dp: (Int) -> Int) : View(ctx) {
 
         // Geräte: harmlose zuerst, verdächtige obendrauf
         val vis = visible().sortedBy { it.level }
-        val showAllLabels = vis.size <= 16
+        val showAllLabels = when (labels) { 1 -> true; 2 -> false; else -> vis.size <= 16 }
         for (f in vis) {
             val p = xy(f, cx, cy, r) ?: continue
             val age = (now - (born[id(f)] ?: now)).coerceAtLeast(0)
@@ -237,16 +236,33 @@ class RadarView(ctx: Context, private val dp: (Int) -> Int) : View(ctx) {
             }
             if (f.level > 0 || showAllLabels || selected == id(f)) {
                 pLabel.color = if (f.level > 0 || selected == id(f)) Col.FG else Col.DIM
-                val t = f.title.let { if (it.length > 15) it.take(14) + "…" else it }
+                val n = badges[id(f)]
+                val base = f.title.let { if (it.length > 15) it.take(14) + "…" else it }
+                val t = if (n != null && n > 1) "$base ×$n" else base
                 c.drawText(t, p[0], p[1] + size + dp(12), pLabel)
             }
         }
         if (items.isEmpty()) {
             pLabel.color = Col.DIM
-            c.drawText("noch nichts gescannt", cx, cy + r * 0.55f, pLabel)
+            c.drawText(emptyText, cx, cy + r * 0.55f, pLabel)
         }
         if (isAttachedToWindow) postInvalidateOnAnimation()
     }
+
+    var emptyText = "noch nichts gescannt"
+
+    /**
+     * Zoom: schwächstes angezeigtes Signal (dBm). Standard −95 = ganzer Bereich.
+     * Mit Mindestsignal-Filter füllt der gefilterte Bereich das ganze Radar.
+     */
+    var edgeRssi = -95
+        set(v) { if (field != v) { field = v; relayout() } }
+
+    /** Signal → Abstand (0 = Mitte, 1 = Rand); 0..0.2 bleibt fürs Handy frei, −40 dBm liegt bei 0.2 */
+    fun rf(rssi: Int?): Float = if (rssi == null) 0.95f
+        else (0.2f + 0.8f * (((-rssi) - 40) / ((-edgeRssi) - 40f))).coerceIn(0.24f, 0.97f)
+
+    private fun ringF(rssi: Int) = 0.2f + 0.8f * (((-rssi) - 40) / ((-edgeRssi) - 40f))
 
     private var downX = 0f
     private var downY = 0f
@@ -288,8 +304,10 @@ class Radar(private val a: MainActivity) {
     private val statusTv = TextView(a)
     private val card = LinearLayout(a)
     private val h = Handler(Looper.getMainLooper())
-    private lateinit var filterChip: TextView
+    private val panel = LinearLayout(a)
+    private lateinit var bottom: LinearLayout
     private var pick: Finding? = null
+    private var shown: List<Finding> = emptyList()
 
     private val tick = object : Runnable {
         override fun run() {
@@ -331,15 +349,19 @@ class Radar(private val a: MainActivity) {
             }
         })
 
-        // Knöpfe + Status
-        val bar = LinearLayout(a).apply { gravity = Gravity.CENTER_VERTICAL; setPadding(a.dp(10), a.dp(4), a.dp(10), a.dp(10)) }
-        bar.addView(a.chip("🔎 Sweep") { if (!a.isBusy()) a.exec("sweep") })
-        bar.addView(a.chip("📶 Netze") { a.showNets() })
-        filterChip = a.chip("nur auffällige") { view.onlyNotable = !view.onlyNotable; paintFilter() }
-        bar.addView(filterChip)
-        statusTv.apply { textSize = 11f; setTextColor(Col.ORANGE); typeface = Typeface.MONOSPACE; setPadding(a.dp(6), 0, 0, 0); maxLines = 2 }
-        bar.addView(statusTv, LinearLayout.LayoutParams(0, -2, 1f))
-        col.addView(bar)
+        // Status (eigene Zeile, damit die Knöpfe nie gequetscht werden)
+        statusTv.apply {
+            textSize = 11f; setTextColor(Col.ORANGE); typeface = Typeface.MONOSPACE; isSingleLine = true
+            ellipsize = android.text.TextUtils.TruncateAt.END; setPadding(a.dp(14), a.dp(2), a.dp(14), a.dp(2))
+        }
+        col.addView(statusTv)
+        // Knöpfe: gleich breit, einzeilig
+        bottom = a.btnRow(
+            "🔎 Sweep" to { if (!a.isBusy()) a.exec("sweep") },
+            "📶 Netze" to { a.showNets() },
+            "Filter" to { togglePanel() })
+        bottom.setPadding(a.dp(7), a.dp(4), a.dp(7), a.dp(10))
+        col.addView(bottom)
 
         frame.addView(col, FrameLayout.LayoutParams(-1, -1))
 
@@ -354,39 +376,177 @@ class Radar(private val a: MainActivity) {
         }
         frame.addView(card, FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM).apply { setMargins(a.dp(8), 0, a.dp(8), a.dp(8)) })
 
+        panel.apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(a.dp(14), a.dp(12), a.dp(14), a.dp(12))
+            background = GradientDrawable().apply { setColor(Col.PANEL); setStroke(a.dp(1), Col.ORANGE_DIM); cornerRadius = a.dp(14).toFloat() }
+            visibility = View.GONE
+            isClickable = true
+            elevation = a.dp(8).toFloat()
+        }
+        frame.addView(panel, FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM).apply { setMargins(a.dp(8), 0, a.dp(8), a.dp(8)) })
+
         a.root.addView(frame, FrameLayout.LayoutParams(-1, -1))
-        paintFilter()
         h.post(tick)
     }
 
-    private fun paintFilter() {
-        val on = view.onlyNotable
-        filterChip.setTextColor(if (on) Col.BG else Col.ORANGE)
-        filterChip.background = GradientDrawable().apply {
-            setColor(if (on) Col.ORANGE else Col.PANEL); setStroke(a.dp(1), Col.ORANGE_DIM); cornerRadius = a.dp(14).toFloat()
+    // ------------------------------------------------------------------ Filter
+    private val allSrc = Src.values().map { it.name }.toSet()
+
+    /** Anzahl der vom Standard abweichenden Filter (für die Knopfbeschriftung) */
+    private fun activeFilters(): Int {
+        var n = 0
+        if (Prefs.radarSrc != allSrc) n++
+        if (Prefs.radarLevel != 0) n++
+        if (Prefs.radarMinRssi != 0) n++
+        if (Prefs.radarMax != 0) n++
+        if (!Prefs.radarBundle) n++
+        if (!Prefs.radarHideKnown) n++
+        if (Prefs.radarLabels != 0) n++
+        return n
+    }
+
+    /** Filter anwenden; liefert die angezeigten Punkte und setzt die Bündel-Zähler */
+    private fun filtered(all: List<Finding>): List<Finding> {
+        val src = Prefs.radarSrc
+        val minR = Prefs.radarMinRssi
+        val known = if (Prefs.radarHideKnown) Prefs.known else emptySet()
+        var l = all.filter { f ->
+            f.src.name in src &&
+                f.level >= Prefs.radarLevel &&
+                (f.src.name + "|" + f.key) !in known &&
+                // Geräte ohne Funksignal (Hotel-LAN) bleiben beim Mindestsignal sichtbar
+                (minR == 0 || f.rssi == null || f.rssi!! >= minR)
         }
+        val badges = HashMap<String, Int>()
+        if (Prefs.radarBundle) {
+            // gleichnamige WLAN-Zugangspunkte → ein Punkt (der auffälligste, dann der stärkste)
+            val (wl, rest) = l.partition { it.src == Src.WLAN && !it.title.startsWith("‹") }
+            val reps = wl.groupBy { it.title }.values.map { g ->
+                val r = g.maxWith(compareBy<Finding> { it.level }.thenBy { it.rssi ?: -200 })
+                if (g.size > 1) badges[RadarView.id(r)] = g.size
+                r
+            }
+            l = rest + reps
+        }
+        val max = Prefs.radarMax
+        if (max > 0 && l.size > max) {
+            // auffällige immer, dann die stärksten
+            val (hot, calm) = l.partition { it.level > 0 }
+            l = hot + calm.sortedByDescending { it.rssi ?: -200 }.take((max - hot.size).coerceAtLeast(0))
+        }
+        view.badges = badges
+        return l
+    }
+
+    private fun togglePanel() {
+        if (panel.visibility == View.VISIBLE) { panel.visibility = View.GONE; return }
+        card.visibility = View.GONE; view.selected = null; pick = null
+        fillPanel()
+        panel.visibility = View.VISIBLE
+    }
+
+    private fun label(t: String) = txt(t, 12f, Col.ORANGE, true).apply { setPadding(a.dp(2), a.dp(8), 0, a.dp(3)) }
+
+    /** Reihe mit Auswahlknöpfen; sel = welcher Knopf aktiv ist */
+    private fun choice(names: List<String>, active: (Int) -> Boolean, pick: (Int) -> Unit): LinearLayout {
+        val row = a.btnRow(*names.mapIndexed { i, n -> n to { pick(i); refresh(); fillPanel() } }.toTypedArray())
+        with(a) { row.btns.forEachIndexed { i, b -> sel(b, active(i)) } }
+        row.layoutParams = LinearLayout.LayoutParams(-1, a.dp(40))
+        return row
+    }
+
+    private fun fillPanel() {
+        panel.removeAllViews()
+        val head = LinearLayout(a).apply { gravity = Gravity.CENTER_VERTICAL }
+        head.addView(txt("Filter", 16f, Col.FG, true), LinearLayout.LayoutParams(0, -2, 1f))
+        head.addView(txt("zeigt ${shown.size} von ${a.findings.snapshot().size}", 12f, Col.DIM))
+        panel.addView(head)
+
+        val inner = LinearLayout(a).apply { orientation = LinearLayout.VERTICAL }
+        val srcs = listOf(Src.WLAN to "WLAN", Src.BLE to "BT LE", Src.BT to "BT", Src.LAN to "LAN")
+        inner.addView(label("Funkarten"))
+        inner.addView(choice(srcs.map { it.second }, { Prefs.radarSrc.contains(srcs[it].first.name) }) { i ->
+            val n = srcs[i].first.name
+            val cur = Prefs.radarSrc
+            Prefs.radarSrc = if (n in cur) (cur - n).ifEmpty { cur } else cur + n
+        })
+        inner.addView(label("Einstufung"))
+        inner.addView(choice(listOf("alle", "ab unklar", "verdächtig"), { it == Prefs.radarLevel }) { Prefs.radarLevel = it })
+        val rs = listOf(0, -80, -65, -50)
+        inner.addView(label("Mindestsignal"))
+        inner.addView(choice(listOf("alle", "ab mittel", "ab nah", "sehr nah"), { rs[it] == Prefs.radarMinRssi }) { Prefs.radarMinRssi = rs[it] })
+        val mx = listOf(0, 50, 30, 15)
+        inner.addView(label("Höchstens (stärkste zuerst, auffällige immer)"))
+        inner.addView(choice(listOf("alle", "50", "30", "15"), { mx[it] == Prefs.radarMax }) { Prefs.radarMax = mx[it] })
+        inner.addView(label("Gleichnamige WLANs"))
+        inner.addView(choice(listOf("bündeln", "einzeln"), { (it == 0) == Prefs.radarBundle }) { Prefs.radarBundle = it == 0 })
+        val nk = Prefs.known.size
+        inner.addView(label("Bekannte Geräte ($nk markiert)"))
+        inner.addView(choice(listOf("ausblenden", "zeigen", "Liste leeren"), { i -> (i == 0 && Prefs.radarHideKnown) || (i == 1 && !Prefs.radarHideKnown) }) { i ->
+            when (i) { 0 -> Prefs.radarHideKnown = true; 1 -> Prefs.radarHideKnown = false; else -> Prefs.known = emptySet() }
+        })
+        inner.addView(label("Beschriftung"))
+        inner.addView(choice(listOf("automatisch", "alle", "auffällige"), { it == Prefs.radarLabels }) { Prefs.radarLabels = it })
+        inner.addView(txt("„Bekannt“ setzt du in der Karte eines Geräts (Punkt antippen). Bluetooth-Geräte mit wechselnder " +
+            "Adresse (Handys, viele Uhren) lassen sich nicht dauerhaft merken. Hotel-LAN-Geräte haben kein Funksignal und " +
+            "bleiben beim Mindestsignal sichtbar.", 11f, Col.DIM).apply { setPadding(a.dp(2), a.dp(8), 0, 0) })
+
+        val maxH = (a.resources.displayMetrics.heightPixels * 0.55f).toInt()
+        val sv = object : ScrollView(a) {
+            override fun onMeasure(w: Int, hh: Int) = super.onMeasure(w, MeasureSpec.makeMeasureSpec(maxH, MeasureSpec.AT_MOST))
+        }
+        sv.addView(inner)
+        panel.addView(sv, LinearLayout.LayoutParams(-1, -2))
+        val foot = a.btnRow("Zurücksetzen" to {
+            Prefs.radarSrc = allSrc; Prefs.radarLevel = 0; Prefs.radarMinRssi = 0; Prefs.radarMax = 0
+            Prefs.radarBundle = true; Prefs.radarHideKnown = true; Prefs.radarLabels = 0
+            refresh(); fillPanel()
+        }, "Fertig" to { panel.visibility = View.GONE })
+        with(a) { sel(foot.btns[1], true) }
+        foot.setPadding(0, a.dp(10), 0, 0)
+        panel.addView(foot)
     }
 
     private fun refresh() {
         val all = a.findings.snapshot()
-        view.update(all)
-        val bad = all.count { it.level == 2 }
-        val unk = all.count { it.level == 1 }
+        shown = filtered(all)
+        view.labels = Prefs.radarLabels
+        // Mindestsignal → hineinzoomen (5 dB Luft am Rand)
+        view.edgeRssi = if (Prefs.radarMinRssi != 0) Prefs.radarMinRssi - 5 else -95
+        view.emptyText = if (all.isEmpty()) "noch nichts gescannt" else "alles weggefiltert – unten »Filter«"
+        view.update(shown)
+        // Urteil über ALLE Funde (ohne die als bekannt markierten) – der Filter versteckt keine Warnung
+        val rel = all.filter { !Prefs.isKnown(it) }
+        val bad = rel.count { it.level == 2 }
+        val unk = rel.count { it.level == 1 }
         when {
             all.isEmpty() -> { verdict.text = "Noch nichts gescannt – unten auf »Sweep«."; verdict.setTextColor(Col.FG) }
             bad > 0 -> { verdict.text = "⚠ $bad ${if (bad == 1) "Gerät" else "Geräte"} genauer ansehen"; verdict.setTextColor(Col.RED) }
             unk > 0 -> { verdict.text = "$unk unklar – meist harmlos, kurz prüfen"; verdict.setTextColor(Col.YEL) }
             else -> { verdict.text = "✓ Funktechnisch nichts Auffälliges"; verdict.setTextColor(Col.GRN) }
         }
-        counts.text = "${all.size} Geräte · $bad verdächtig · $unk unklar"
+        val shownIds = shown.map { RadarView.id(it) }.toSet()
+        val hiddenBad = rel.count { it.level == 2 && RadarView.id(it) !in shownIds &&
+            !(Prefs.radarBundle && it.src == Src.WLAN && shown.any { s -> s.src == Src.WLAN && s.title == it.title }) }
+        counts.text = (if (shown.size == all.size) "${all.size} Geräte" else "zeigt ${shown.size} von ${all.size}") +
+            " · $bad verdächtig · $unk unklar" + (if (hiddenBad > 0) " · $hiddenBad ⚠ ausgeblendet" else "")
+        counts.setTextColor(if (hiddenBad > 0) Col.RED else Col.DIM)
+        val nf = activeFilters()
+        with(a) {
+            bottom.btns[2].text = if (nf > 0) "Filter · $nf" else "Filter"
+            sel(bottom.btns[2], nf > 0 || panel.visibility == View.VISIBLE)
+        }
         val s = a.statusNow()
         statusTv.text = s ?: if (a.isBusy()) "läuft …" else ""
+        statusTv.visibility = if (statusTv.text.isNullOrEmpty()) View.GONE else View.VISIBLE
         // Karte aktuell halten (Werte ändern sich beim Scan)
         pick?.let { p -> all.firstOrNull { it.src == p.src && it.key == p.key }?.let { if (card.visibility == View.VISIBLE) fillCard(it) } }
     }
 
     private fun showCard(f: Finding?) {
         if (f == null) { card.visibility = View.GONE; return }
+        panel.visibility = View.GONE
         fillCard(f)
         card.visibility = View.VISIBLE
     }
@@ -404,7 +564,9 @@ class Radar(private val a: MainActivity) {
             else -> "Unauffällig" to Col.GRN
         }
         val head = LinearLayout(a).apply { gravity = Gravity.CENTER_VERTICAL }
-        head.addView(txt("#${f.id}  ${f.title}", 16f, Col.FG, true), LinearLayout.LayoutParams(0, -2, 1f))
+        val nb = view.badges[RadarView.id(f)]
+        head.addView(txt("#${f.id}  ${f.title}" + (if (nb != null && nb > 1) "  (${nb} Zugangspunkte)" else ""), 16f, Col.FG, true),
+            LinearLayout.LayoutParams(0, -2, 1f))
         head.addView(a.chip("✕") { view.selected = null; pick = null; card.visibility = View.GONE })
         card.addView(head)
         card.addView(txt(lvlText, 14f, lvlCol, true))
@@ -423,11 +585,19 @@ class Radar(private val a: MainActivity) {
         if (f.detail.isNotBlank()) inner.addView(txt(f.detail.trim(), 11f, Col.DIM).apply { typeface = Typeface.MONOSPACE })
         sv.addView(inner)
         card.addView(sv, LinearLayout.LayoutParams(-1, -2))
-        if (f.src == Src.BLE || f.src == Src.WLAN) {
-            val row = LinearLayout(a).apply { gravity = Gravity.END; setPadding(0, a.dp(8), 0, 0) }
-            row.addView(a.chip("🎯 Aufspüren") { close(); a.exec("track ${f.id}") })
-            card.addView(row)
+        val known = Prefs.isKnown(f)
+        val acts = mutableListOf<Pair<String, () -> Unit>>()
+        if (f.src == Src.BLE || f.src == Src.WLAN) acts += "🎯 Aufspüren" to { close(); a.exec("track ${f.id}") }
+        acts += (if (known) "✓ bekannt – aufheben" else "✓ Kenn ich") to {
+            Prefs.setKnown(f, !known)
+            if (!known && Prefs.radarHideKnown) { card.visibility = View.GONE; view.selected = null; pick = null }
+            refresh()
+            if (card.visibility == View.VISIBLE) fillCard(f)
         }
+        val row = a.btnRow(*acts.toTypedArray())
+        with(a) { if (known) sel(row.btns.last(), true) }
+        row.setPadding(0, a.dp(8), 0, 0)
+        card.addView(row)
     }
 
     private fun kind(s: Src) = when (s) {

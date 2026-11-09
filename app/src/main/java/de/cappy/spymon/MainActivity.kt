@@ -197,6 +197,35 @@ class MainActivity : Activity() {
         setOnClickListener { on() }
     }
 
+    /**
+     * Knopfreihe: alle Knöpfe gleich breit, einzeilig; zu lange Texte werden kleiner statt umzubrechen.
+     * Rückgabe: die Reihe, die Knöpfe stehen in [btns] (für Beschriftung/Markierung).
+     */
+    fun btnRow(vararg items: Pair<String, () -> Unit>): LinearLayout = LinearLayout(this).apply {
+        orientation = LinearLayout.HORIZONTAL
+        for ((t, on) in items) addView(btn(t, on), LinearLayout.LayoutParams(0, dp(40), 1f).apply { setMargins(dp(3), 0, dp(3), 0) })
+    }
+
+    val LinearLayout.btns: List<TextView> get() = (0 until childCount).map { getChildAt(it) as TextView }
+
+    fun btn(t: String, on: () -> Unit) = TextView(this).apply {
+        text = t; typeface = Typeface.MONOSPACE; setTextColor(Col.ORANGE)
+        gravity = Gravity.CENTER; isSingleLine = true; maxLines = 1
+        ellipsize = android.text.TextUtils.TruncateAt.END
+        setPadding(dp(6), 0, dp(6), 0)
+        setAutoSizeTextTypeUniformWithConfiguration(9, 13, 1, android.util.TypedValue.COMPLEX_UNIT_SP)
+        sel(this, false)
+        setOnClickListener { on() }
+    }
+
+    /** Knopf als „an“ (orange gefüllt) oder „aus“ zeichnen */
+    fun sel(v: TextView, on: Boolean) {
+        v.setTextColor(if (on) Col.BG else Col.ORANGE)
+        v.background = GradientDrawable().apply {
+            setColor(if (on) Col.ORANGE else Col.PANEL); setStroke(dp(1), Col.ORANGE_DIM); cornerRadius = dp(14).toFloat()
+        }
+    }
+
     fun chip(t: String, on: () -> Unit) = TextView(this).apply {
         text = t; typeface = Typeface.MONOSPACE; textSize = 13f; setTextColor(Col.ORANGE)
         setPadding(dp(12), dp(7), dp(12), dp(7))
@@ -442,7 +471,7 @@ class MainActivity : Activity() {
         }
         closeCam()
         con.head(if (m == "ir") "IR-Modus" else "Linsen-Suche")
-        cam = CamView(this, front = m == "ir", torch = m == "lens").also { it.show() }
+        cam = CamView(this, front = m == "ir" && Prefs.irFront, torch = m == "lens", ir = m == "ir").also { it.show() }
     }
 
     fun closeCam() { cam?.close(); cam = null }

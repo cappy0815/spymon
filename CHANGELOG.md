@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4 (09.11.2026)
+- IR-Modus: Umschalter Hauptkamera / Frontkamera, Standard ist jetzt die Hauptkamera; die Wahl wird gemerkt
+- Radar: Filter für Funkarten, Einstufung, Mindestsignal (mit Zoom auf den Bereich), Höchstzahl (stärkste zuerst, auffällige immer), Beschriftung
+- Radar: gleichnamige WLAN-Zugangspunkte zu einem Punkt bündeln (×Anzahl am Punkt)
+- Radar: Geräte als „bekannt“ markieren (eigener Router, eigene Uhr …) und ausblenden
+- Radar: Warnung, wenn ein Filter verdächtige Geräte ausblendet; das Urteil oben zählt immer alle Funde
+- Alle Knopfreihen unten gleich breit und einzeilig (Radar, Netze, Kamera, Karten)
+
 ## 1.3 (08.11.2026)
 - Neu: WLAN-Netze – alle Funknetze der Umgebung als Liste mit Signalstärke (dBm, Balken, Prozent, Klartext)
 - Pro Netz: Band, Kanal, Kanalbreite, Verschlüsselung (offen/WEP gelb markiert), Wi-Fi-Standard, Hersteller
