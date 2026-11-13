@@ -21,6 +21,12 @@ object Dialogs {
 
     /** Versionsgeschichte, neueste zuerst */
     val CHANGELOG = listOf(
+        "1.5" to listOf(
+            "Schnellmenü am App-Icon: lange aufs SpyMon-Icon drücken → Sweep starten, Radar, WLAN-Netze, Linsen-Suche",
+            "Jeder Eintrag lässt sich als eigenes Icon auf den Startbildschirm ziehen",
+            "Läuft SpyMon schon, bleiben Funde und laufender Scan erhalten – die App wird nur nach vorn geholt",
+            "Radar aus dem Icon-Menü startet gleich einen Sweep, wenn noch nichts gescannt ist"
+        ),
         "1.4" to listOf(
             "IR-Modus: Umschalter Hauptkamera / Frontkamera, Standard ist jetzt die Hauptkamera; die Wahl wird gemerkt",
             "Radar: Filter für Funkarten, Einstufung, Mindestsignal, Höchstzahl (stärkste zuerst), Beschriftung",
@@ -337,6 +343,8 @@ object Dialogs {
                 item(a, c, "📶", "WLAN-Netze (Symbol oben links neben ◉): alle Funknetze mit Signalstärke, Band, Kanal, Verschlüsselung und Hersteller. " +
                     "Aktualisiert sich alle 30 s. Gleichnamige Zugangspunkte werden gebündelt – antippen klappt sie auf.")
                 item(a, c, "☰", "Lange drücken (oder Rechtsklick mit Maus) auf Konsole, Knöpfe oder ❯ öffnet das Schnellmenü mit allen Scans.")
+                item(a, c, "✻", "Auch am App-Icon: lange aufs SpyMon-Icon drücken → Sweep starten, Radar, WLAN-Netze, Linsen-Suche. " +
+                    "Einträge lassen sich als eigene Icons auf den Startbildschirm ziehen.")
                 item(a, c, "◉", "Radarbild: dein Handy in der Mitte, oben WLAN, rechts Bluetooth LE, unten Bluetooth, links Hotel-LAN. " +
                     "Je näher an der Mitte, desto stärker das Signal. Die Lage im Sektor ist keine Himmelsrichtung – " +
                     "die kann ein Handy nicht messen; dafür gibt es »Aufspüren«.")

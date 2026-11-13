@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5 (13.11.2026)
+- Schnellmenü am App-Icon: lange aufs SpyMon-Icon drücken → Sweep starten, Radar, WLAN-Netze, Linsen-Suche
+- Jeder Eintrag lässt sich als eigenes Icon auf den Startbildschirm ziehen
+- Läuft SpyMon schon, bleiben Funde und laufender Scan erhalten – die App wird nur nach vorn geholt
+- Radar aus dem Icon-Menü startet gleich einen Sweep, wenn noch nichts gescannt ist
+
 ## 1.4 (09.11.2026)
 - IR-Modus: Umschalter Hauptkamera / Frontkamera, Standard ist jetzt die Hauptkamera; die Wahl wird gemerkt
 - Radar: Filter für Funkarten, Einstufung, Mindestsignal (mit Zoom auf den Bereich), Höchstzahl (stärkste zuerst, auffällige immer), Beschriftung

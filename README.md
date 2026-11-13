@@ -7,7 +7,7 @@ oder über das **Radarbild**: dein Handy in der Mitte, die gefundenen Geräte dr
 Signalstärke und Einstufung, jedes mit einer Erklärung in Klartext. Dazu eine Liste aller WLAN-Netze
 der Umgebung mit Signalstärke, Kanal und Verschlüsselung.
 
-**Download:** [cappy0815.github.io](https://cappy0815.github.io/#spymon) · aktuelle Version **1.4**
+**Download:** [cappy0815.github.io](https://cappy0815.github.io/#spymon) · aktuelle Version **1.5**
 
 ![SpyMon: Radarbild, Detailkarte zu einem Fund und Liste der WLAN-Netze mit Signalstärke](docs/screenshot.webp)
 
@@ -30,6 +30,9 @@ der Umgebung mit Signalstärke, Kanal und Verschlüsselung.
 Markierungen: `[!!]` verdächtig · `[ ?]` unklar · `[ok]` harmlos. Jeder Fund bekommt eine `#nr`.
 
 **Schnellmenü:** lange drücken (oder Rechtsklick mit Maus) auf Konsole, Befehlsknöpfe oder `❯`.
+
+**Schnellmenü am App-Icon:** lange aufs SpyMon-Icon drücken → Sweep starten, Radar, WLAN-Netze,
+Linsen-Suche. Die Einträge lassen sich als eigene Icons auf den Startbildschirm ziehen.
 
 **Radar:** oben WLAN, rechts Bluetooth LE, unten Bluetooth, links Hotel-LAN. Je näher an der Mitte,
 desto stärker das Signal (Ringe bei −50, −65, −80 dBm). Die Lage innerhalb eines Sektors ist keine

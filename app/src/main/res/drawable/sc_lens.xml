@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Kameralinse mit Lichtreflex -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="48dp" android:height="48dp" android:viewportWidth="48" android:viewportHeight="48">
+    <path android:fillColor="#FF1A1411" android:pathData="M24,24m-22,0a22,22 0 1,0 44,0a22,22 0 1,0 -44,0" />
+    <path android:strokeColor="#FFFF8A2B" android:strokeWidth="3" android:strokeLineCap="round" android:fillColor="#00000000" android:pathData="M24,24m-12,0a12,12 0 1,0 24,0a12,12 0 1,0 -24,0" />
+    <path android:strokeColor="#99FF8A2B" android:strokeWidth="2" android:fillColor="#00000000" android:pathData="M24,24m-6,0a6,6 0 1,0 12,0a6,6 0 1,0 -12,0" />
+    <path android:fillColor="#FFFF8A2B" android:pathData="M21,21m-2,0a2,2 0 1,0 4,0a2,2 0 1,0 -4,0" />
+</vector>

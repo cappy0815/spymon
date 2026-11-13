@@ -82,6 +82,48 @@ class MainActivity : Activity() {
         h.post(spinner)
         refreshUpdate()
         if (Update.due(this)) Update.check(this) { ok -> if (ok) refreshUpdate(announce = true) }
+        shortcut(intent)
+    }
+
+    /** App läuft schon und wird über das Schnellmenü am Icon geholt (launchMode singleTask) */
+    override fun onNewIntent(i: Intent) {
+        super.onNewIntent(i)
+        setIntent(i)
+        shortcut(i)
+    }
+
+    // ---------------- Schnellmenü am App-Icon ----------------
+    private var pendingShortcut: String? = null
+
+    private fun scanPermsOk(): Boolean {
+        val need = mutableListOf(Manifest.permission.ACCESS_FINE_LOCATION)
+        if (Build.VERSION.SDK_INT >= 31) need += listOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
+        if (Build.VERSION.SDK_INT >= 33) need += Manifest.permission.NEARBY_WIFI_DEVICES
+        return need.all { checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED }
+    }
+
+    private fun shortcut(i: Intent?) {
+        val act = i?.action ?: return
+        if (!act.startsWith("de.cappy.spymon.")) return
+        i.action = Intent.ACTION_MAIN   // nicht noch einmal auslösen (z. B. nach Drehen/Neuaufbau)
+        // Beim allerersten Start fragt Android erst die Rechte ab – danach geht es weiter
+        if (act != "de.cappy.spymon.LENS" && !scanPermsOk()) { pendingShortcut = act; return }
+        runShortcut(act)
+    }
+
+    private fun runShortcut(act: String) {
+        when (act) {
+            "de.cappy.spymon.SWEEP" -> {
+                closeCam(); radar?.close(); nets?.close()
+                if (busy) con.warn("Scan läuft schon") else exec("sweep")
+            }
+            "de.cappy.spymon.RADAR" -> {
+                showRadar()
+                if (!busy && findings.snapshot().isEmpty()) exec("sweep")
+            }
+            "de.cappy.spymon.NETS" -> showNets()
+            "de.cappy.spymon.LENS" -> if (cam == null) exec("lens")
+        }
     }
 
     /** Einstellungen anwenden (Start und nach »Speichern«) */
@@ -643,6 +685,7 @@ class MainActivity : Activity() {
             val denied = perms.filterIndexed { i, _ -> res.getOrNull(i) != PackageManager.PERMISSION_GRANTED }
             if (denied.isEmpty()) con.ok("Berechtigungen ok")
             else con.err("Fehlt: " + denied.joinToString { it.substringAfterLast('.') } + " – Scans eingeschränkt")
+            pendingShortcut?.let { pendingShortcut = null; runShortcut(it) }
         } else if (code == 2) {
             if (res.firstOrNull() == PackageManager.PERMISSION_GRANTED) pendingCam?.let { camMode(it) }
             else con.err("Kamera-Recht fehlt")

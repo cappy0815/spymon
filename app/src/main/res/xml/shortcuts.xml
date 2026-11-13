@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Schnellmenü am App-Icon. Die Einträge gehen an ShortcutActivity (eigene Aufgabe, unsichtbar):
+  Android startet feste Shortcuts sonst immer mit „Aufgabe leeren“ – dann wären laufende Scans
+  und alle Funde weg. So wird die laufende App nur nach vorn geholt.
+  Reihenfolge wie hier (wichtigster zuerst); wie der Launcher sie anordnet, ist seine Sache.
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="sweep" android:enabled="true" android:icon="@drawable/sc_sweep"
+        android:shortcutShortLabel="@string/sc_sweep_s" android:shortcutLongLabel="@string/sc_sweep_l">
+        <intent android:action="de.cappy.spymon.SWEEP" android:targetPackage="de.cappy.spymon"
+            android:targetClass="de.cappy.spymon.ShortcutActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="radar" android:enabled="true" android:icon="@drawable/sc_radar"
+        android:shortcutShortLabel="@string/sc_radar_s" android:shortcutLongLabel="@string/sc_radar_l">
+        <intent android:action="de.cappy.spymon.RADAR" android:targetPackage="de.cappy.spymon"
+            android:targetClass="de.cappy.spymon.ShortcutActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="nets" android:enabled="true" android:icon="@drawable/sc_nets"
+        android:shortcutShortLabel="@string/sc_nets_s" android:shortcutLongLabel="@string/sc_nets_l">
+        <intent android:action="de.cappy.spymon.NETS" android:targetPackage="de.cappy.spymon"
+            android:targetClass="de.cappy.spymon.ShortcutActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="lens" android:enabled="true" android:icon="@drawable/sc_lens"
+        android:shortcutShortLabel="@string/sc_lens_s" android:shortcutLongLabel="@string/sc_lens_l">
+        <intent android:action="de.cappy.spymon.LENS" android:targetPackage="de.cappy.spymon"
+            android:targetClass="de.cappy.spymon.ShortcutActivity" />
+    </shortcut>
+</shortcuts>

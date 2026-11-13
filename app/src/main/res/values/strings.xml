@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Schnellmenü am App-Icon (lange aufs Icon drücken) -->
+    <string name="sc_sweep_s">Sweep starten</string>
+    <string name="sc_sweep_l">Sweep: alles prüfen</string>
+    <string name="sc_radar_s">Radar</string>
+    <string name="sc_radar_l">Radar: Umgebungsbild</string>
+    <string name="sc_nets_s">WLAN-Netze</string>
+    <string name="sc_nets_l">WLAN-Netze mit Signalstärke</string>
+    <string name="sc_lens_s">Linsen-Suche</string>
+    <string name="sc_lens_l">Linsen-Suche mit Lampe</string>
+</resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Lupe -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="48dp" android:height="48dp" android:viewportWidth="48" android:viewportHeight="48">
+    <path android:fillColor="#FF1A1411" android:pathData="M24,24m-22,0a22,22 0 1,0 44,0a22,22 0 1,0 -44,0" />
+    <path android:strokeColor="#FFFF8A2B" android:strokeWidth="3" android:strokeLineCap="round" android:fillColor="#00000000" android:pathData="M21,21m-8,0a8,8 0 1,0 16,0a8,8 0 1,0 -16,0" />
+    <path android:strokeColor="#FFFF8A2B" android:strokeWidth="3" android:strokeLineCap="round" android:fillColor="#00000000" android:pathData="M27,27 L35,35" />
+</vector>

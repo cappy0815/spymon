@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Radar: Ringe, Strahl, Punkt -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="48dp" android:height="48dp" android:viewportWidth="48" android:viewportHeight="48">
+    <path android:fillColor="#FF1A1411" android:pathData="M24,24m-22,0a22,22 0 1,0 44,0a22,22 0 1,0 -44,0" />
+    <path android:strokeColor="#FFFF8A2B" android:strokeWidth="3" android:strokeLineCap="round" android:fillColor="#00000000" android:pathData="M24,24m-13,0a13,13 0 1,0 26,0a13,13 0 1,0 -26,0" />
+    <path android:strokeColor="#99FF8A2B" android:strokeWidth="2" android:fillColor="#00000000" android:pathData="M24,24m-7,0a7,7 0 1,0 14,0a7,7 0 1,0 -14,0" />
+    <path android:strokeColor="#FFFF8A2B" android:strokeWidth="3" android:strokeLineCap="round" android:fillColor="#00000000" android:pathData="M24,24 L33,15" />
+    <path android:fillColor="#FFFF8A2B" android:pathData="M24,24m-2.5,0a2.5,2.5 0 1,0 5,0a2.5,2.5 0 1,0 -5,0" />
+</vector>

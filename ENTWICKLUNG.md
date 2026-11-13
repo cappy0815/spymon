@@ -4,6 +4,7 @@
 > Neu in 1.1: `Prefs.kt` (Einstellungen), `Update.kt` (Update-Prüfung über `cappy0815.github.io/downloads/spymon.json`, Rückfall GitHub-Release), `Dialogs.kt` (Hilfe, Einstellungen, Update-Dialog, CHANGELOG, Befehlsliste).
 > Neu in 1.2: `Radar.kt` (RadarView + Vollbild-Ansicht mit Detailkarte), Schnellmenü (`quickMenu()` in MainActivity), `Console.fill()` für Linien auf Bildschirmbreite.
 > Neu in 1.3: `Networks.kt` (Ansicht WLAN-Netze, Klasse `Net`, `SignalBars`, `WifiGlyph` für die Kopfleiste).
+> Neu in 1.5: App-Shortcuts (`res/xml/shortcuts.xml`, Symbole `drawable/sc_*.xml`, Texte `values/strings.xml`). Sie zielen auf `ShortcutActivity` (unsichtbar, `taskAffinity=""`), weil Android feste Shortcuts mit CLEAR_TASK startet; die reicht die Aktion an `MainActivity` (`launchMode=singleTask`, `onNewIntent` → `shortcut()`) weiter.
 > Bei jeder Version: `versionCode`/`versionName` in `app/build.gradle.kts`, `CHANGELOG` in `Dialogs.kt`, `CHANGELOG.md`, `docs/spymon.json`.
 
 Erste Version (RoomSweep 1.0) von Claude Code am 2026-11-08, ab 1.1 von Justus weitergeführt.
